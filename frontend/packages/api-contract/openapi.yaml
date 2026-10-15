@@ -1,0 +1,469 @@
+openapi: 3.1.0
+info:
+  title: Astha Platform API
+  version: 1.0.0
+  description: Real-time fraud and dispute operations platform for Bangladeshi mobile financial services.
+servers:
+  - url: http://localhost:8080/v1
+    description: API Gateway
+  - url: http://localhost:8083/v1
+    description: Risk Service Direct
+paths:
+  /risk/score:
+    post:
+      summary: Synchronous transaction risk score
+      operationId: scoreTransaction
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: false
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransactionScoreRequest'
+      responses:
+        '200':
+          description: Score computed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScoreResponse'
+        '422':
+          description: Idempotency payload mismatch
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+
+  /risk/rules:
+    get:
+      summary: List all fraud detection rules
+      operationId: getRules
+      responses:
+        '200':
+          description: List of rules
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Rule'
+
+  /risk/rules/{id}/versions:
+    get:
+      summary: Get rule versions history
+      operationId: getRuleVersions
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of versions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RuleVersion'
+    post:
+      summary: Draft new rule version
+      operationId: draftRuleVersion
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: X-User-Id
+          in: header
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                parametersJson:
+                  type: string
+      responses:
+        '200':
+          description: Draft created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RuleVersion'
+
+  /risk/rules/versions/{versionId}/approve:
+    post:
+      summary: Four-eyes approval of a rule version
+      operationId: approveRuleVersion
+      parameters:
+        - name: versionId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: X-User-Id
+          in: header
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                notes:
+                  type: string
+      responses:
+        '200':
+          description: Version approved and activated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RuleVersion'
+        '403':
+          description: Four-eyes policy violation (author cannot approve)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+
+  /risk/rules/{id}/rollback:
+    post:
+      summary: Rollback rule to a previous active version
+      operationId: rollbackRule
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [targetVersionId]
+              properties:
+                targetVersionId:
+                  type: string
+      responses:
+        '200':
+          description: Rule rolled back
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Rule'
+
+  /risk/lists:
+    get:
+      summary: Get allowlist or blocklist
+      operationId: getLists
+      parameters:
+        - name: type
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [ALLOW, BLOCK]
+      responses:
+        '200':
+          description: List of entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ListEntity'
+    post:
+      summary: Add entry to allowlist or blocklist
+      operationId: addToList
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ListEntityInput'
+      responses:
+        '200':
+          description: Entry added
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListEntity'
+
+  /cases:
+    get:
+      summary: Get prioritized cases queue
+      operationId: getCases
+      responses:
+        '200':
+          description: List of cases
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Case'
+
+  /cases/{id}:
+    get:
+      summary: Get case details
+      operationId: getCaseById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Case details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CaseDetail'
+
+  /cases/{id}/labels:
+    post:
+      summary: Label an alert or case (analyst feedback loop)
+      operationId: labelCase
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [label, reason]
+              properties:
+                label:
+                  type: string
+                  enum: [TRUE_FRAUD, FALSE_POSITIVE, UNCLEAR]
+                reason:
+                  type: string
+      responses:
+        '200':
+          description: Label recorded
+
+  /approvals:
+    get:
+      summary: Get pending four-eyes approvals
+      operationId: getPendingApprovals
+      responses:
+        '200':
+          description: List of pending approvals
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApprovalRequest'
+
+  /graph/entities/{id}/neighbors:
+    get:
+      summary: Get entity network graph up to depth 3
+      operationId: getEntityNeighbors
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: depth
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 2
+      responses:
+        '200':
+          description: Subgraph with nodes and edges
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GraphData'
+
+components:
+  schemas:
+    TransactionScoreRequest:
+      type: object
+      required: [eventId, accountId, amountPaisa, eventType]
+      properties:
+        eventId: { type: string }
+        accountId: { type: string }
+        counterpartyId: { type: string }
+        amountPaisa: { type: integer, format: int64 }
+        eventType: { type: string }
+        channel: { type: string }
+        deviceId: { type: string }
+        agentId: { type: string }
+        merchantId: { type: string }
+        status: { type: string }
+        traceId: { type: string }
+
+    ScoreResponse:
+      type: object
+      properties:
+        decisionId: { type: string, format: uuid }
+        eventId: { type: string }
+        accountId: { type: string }
+        score: { type: integer }
+        decision: { type: string, enum: [ALLOW, REVIEW, BLOCK_RECOMMENDED, ALLOW_WITH_FLAG] }
+        reasonCodes:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReasonCodeDetail'
+        ruleVersions:
+          type: object
+          additionalProperties: { type: string }
+        latencyMs: { type: integer }
+        degraded: { type: boolean }
+        decidedAt: { type: string, format: date-time }
+
+    ReasonCodeDetail:
+      type: object
+      properties:
+        code: { type: string }
+        ruleId: { type: string }
+        weight: { type: integer }
+        textEn: { type: string }
+        textBn: { type: string }
+
+    Rule:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        typology: { type: string }
+        severity: { type: string }
+        weight: { type: integer }
+        activeVersionId: { type: string }
+        descriptionEn: { type: string }
+        descriptionBn: { type: string }
+
+    RuleVersion:
+      type: object
+      properties:
+        id: { type: string }
+        ruleId: { type: string }
+        versionNumber: { type: integer }
+        status: { type: string }
+        parametersJson: { type: string }
+        authorId: { type: string }
+        approvedBy: { type: string }
+        approvedAt: { type: string, format: date-time }
+
+    ListEntity:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        listType: { type: string, enum: [ALLOW, BLOCK] }
+        entityType: { type: string }
+        entityValue: { type: string }
+        reason: { type: string }
+        createdBy: { type: string }
+        createdAt: { type: string, format: date-time }
+        expiresAt: { type: string, format: date-time }
+
+    ListEntityInput:
+      type: object
+      required: [listType, entityType, entityValue, reason]
+      properties:
+        listType: { type: string, enum: [ALLOW, BLOCK] }
+        entityType: { type: string }
+        entityValue: { type: string }
+        reason: { type: string }
+        expiresAt: { type: string, format: date-time }
+
+    Case:
+      type: object
+      properties:
+        id: { type: string }
+        entityId: { type: string }
+        entityType: { type: string }
+        status: { type: string, enum: [NEW, ASSIGNED, UNDER_INVESTIGATION, CLOSED] }
+        priority: { type: integer }
+        typology: { type: string }
+        maxRiskScore: { type: integer }
+        amountAtRiskPaisa: { type: integer, format: int64 }
+        alertCount: { type: integer }
+        createdAt: { type: string, format: date-time }
+        assignee: { type: string }
+
+    CaseDetail:
+      type: object
+      properties:
+        id: { type: string }
+        entityId: { type: string }
+        entityType: { type: string }
+        status: { type: string }
+        priority: { type: integer }
+        typology: { type: string }
+        maxRiskScore: { type: integer }
+        amountAtRiskPaisa: { type: integer, format: int64 }
+        alerts: { type: array, items: { type: object } }
+        timeline: { type: array, items: { type: object } }
+        comments: { type: array, items: { type: object } }
+
+    ApprovalRequest:
+      type: object
+      properties:
+        id: { type: string }
+        actionType: { type: string }
+        entityId: { type: string }
+        amountPaisa: { type: integer, format: int64 }
+        requesterId: { type: string }
+        requestedAt: { type: string, format: date-time }
+        status: { type: string }
+
+    GraphData:
+      type: object
+      properties:
+        nodes:
+          type: array
+          items:
+            type: object
+            properties:
+              id: { type: string }
+              label: { type: string }
+              type: { type: string }
+              riskScore: { type: integer }
+        edges:
+          type: array
+          items:
+            type: object
+            properties:
+              source: { type: string }
+              target: { type: string }
+              relation: { type: string }
+              amountPaisa: { type: integer, format: int64 }
+
+    ProblemDetails:
+      type: object
+      required: [type, title, status]
+      properties:
+        type: { type: string, format: uri }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        instance: { type: string, format: uri }

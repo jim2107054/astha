@@ -1,0 +1,84 @@
+{
+  "common": {
+    "appName": "Astha",
+    "tagline": "Real-time Fraud & Dispute Operations Platform",
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "save": "Save",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "close": "Close",
+    "search": "Search...",
+    "actions": "Actions",
+    "status": "Status",
+    "created": "Created At",
+    "reason": "Reason",
+    "type": "Type",
+    "amount": "Amount",
+    "role": "Role",
+    "switchRole": "Switch Role",
+    "language": "Language",
+    "masked": "Masked for Privacy",
+    "reveal": "Reveal",
+    "enterReason": "Enter a valid justification to reveal this sensitive value:"
+  },
+  "nav": {
+    "overview": "Overview",
+    "cases": "Alerts & Cases",
+    "graph": "Graph Explorer",
+    "approvals": "Four-Eyes Approvals",
+    "rules": "Rules Management",
+    "lists": "Allow & Block Lists",
+    "disputes": "Dispute Desk",
+    "insights": "Insights & KPIs",
+    "simulator": "Simulator Control",
+    "admin": "Admin & Audit"
+  },
+  "risk": {
+    "score": "Risk Score",
+    "decision": "Decision",
+    "allow": "Allow",
+    "review": "Review",
+    "block": "Block Recommended",
+    "allowWithFlag": "Allow With Flag",
+    "reasonCodes": "Reason Codes",
+    "activeRules": "Active Rules",
+    "shadowMode": "Shadow Mode",
+    "level": {
+      "CRITICAL": "Critical",
+      "HIGH": "High",
+      "MEDIUM": "Medium",
+      "LOW": "Low"
+    }
+  },
+  "cases": {
+    "queueTitle": "Fraud Alerts & Triage Queue",
+    "caseDetail": "Case Investigation Dossier",
+    "assignee": "Assignee",
+    "slaCountdown": "SLA Remaining",
+    "evidence": "Evidence & Telemetry",
+    "recommendFreeze": "Recommend Freeze",
+    "requestApproval": "Submit for Review",
+    "timeline": "Audit Timeline"
+  },
+  "approvals": {
+    "title": "Four-Eyes Governance & Approvals",
+    "pending": "Pending Decisions",
+    "requester": "Requester",
+    "action": "Action Type",
+    "approve": "Approve Action",
+    "reject": "Reject",
+    "selfApprovalForbidden": "Self-approval prohibited: An independent officer must approve this request."
+  },
+  "rules": {
+    "title": "Rule Management & Backtesting",
+    "ruleId": "Rule ID",
+    "version": "Version",
+    "parameters": "Parameters",
+    "backtest": "Run 30-Day Backtest Replay",
+    "draftChanges": "Draft Modifications",
+    "precision": "Precision",
+    "recall": "Recall",
+    "alertsGenerated": "Simulated Alerts"
+  }
+}
