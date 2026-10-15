@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://astha.fintech.bd/schemas/risk.decisions.v1.json",
+  "title": "RiskDecisionV1",
+  "type": "object",
+  "required": [
+    "decisionId",
+    "eventId",
+    "accountId",
+    "score",
+    "decision",
+    "decidedAt",
+    "reasonCodes",
+    "ruleVersions",
+    "featuresSnapshot"
+  ],
+  "properties": {
+    "decisionId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "eventId": {
+      "type": "string"
+    },
+    "accountId": {
+      "type": "string"
+    },
+    "score": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "decision": {
+      "type": "string",
+      "enum": ["ALLOW", "REVIEW", "BLOCK_RECOMMENDED", "ALLOW_WITH_FLAG"]
+    },
+    "decidedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "reasonCodes": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "ruleVersions": {
+      "type": "object",
+      "additionalProperties": { "type": "string" }
+    },
+    "featuresSnapshot": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "latencyMs": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "degraded": {
+      "type": "boolean"
+    },
+    "traceId": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false
+}

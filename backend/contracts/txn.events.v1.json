@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://astha.fintech.bd/schemas/txn.events.v1.json",
+  "title": "TransactionEventV1",
+  "type": "object",
+  "required": [
+    "eventId",
+    "eventType",
+    "timestamp",
+    "accountId",
+    "amountPaisa",
+    "currency",
+    "status"
+  ],
+  "properties": {
+    "eventId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "eventType": {
+      "type": "string",
+      "enum": ["P2P", "CASH_IN", "CASH_OUT", "MERCHANT_QR", "BILL", "TOPUP", "REFUND"]
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "accountId": {
+      "type": "string"
+    },
+    "counterpartyId": {
+      "type": "string"
+    },
+    "amountPaisa": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "currency": {
+      "type": "string",
+      "enum": ["BDT"]
+    },
+    "channel": {
+      "type": "string",
+      "enum": ["APP", "USSD", "WEB", "POS", "ATM"]
+    },
+    "deviceId": {
+      "type": "string"
+    },
+    "ipAddress": {
+      "type": "string"
+    },
+    "agentId": {
+      "type": "string"
+    },
+    "merchantId": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["SUCCESS", "FAILED", "PENDING", "REVERSED"]
+    },
+    "accountAgeDays": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "kycTier": {
+      "type": "string",
+      "enum": ["TIER_1", "TIER_2", "TIER_3"]
+    },
+    "traceId": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false
+}

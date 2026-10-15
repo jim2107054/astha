@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://astha.fintech.bd/schemas/profile.events.v1.json",
+  "title": "ProfileEventV1",
+  "type": "object",
+  "required": [
+    "eventId",
+    "eventType",
+    "timestamp",
+    "accountId"
+  ],
+  "properties": {
+    "eventId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "eventType": {
+      "type": "string",
+      "enum": ["SIM_CHANGE", "NEW_DEVICE", "PIN_RESET", "PASSWORD_RESET", "KYC_TIER_CHANGE", "DEVICE_BIND"]
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "accountId": {
+      "type": "string"
+    },
+    "deviceId": {
+      "type": "string"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "oldValue": {
+      "type": "string"
+    },
+    "newValue": {
+      "type": "string"
+    },
+    "traceId": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://astha.fintech.bd/schemas/alerts.v1.json",
+  "title": "AlertV1",
+  "type": "object",
+  "required": [
+    "alertId",
+    "source",
+    "entityId",
+    "entityType",
+    "typology",
+    "severity",
+    "score",
+    "createdAt",
+    "reasonCodes",
+    "evidence"
+  ],
+  "properties": {
+    "alertId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "eventId": {
+      "type": "string"
+    },
+    "source": {
+      "type": "string",
+      "enum": ["RISK_ENGINE", "GRAPH_SERVICE", "MODEL_SHADOW"]
+    },
+    "entityId": {
+      "type": "string"
+    },
+    "entityType": {
+      "type": "string",
+      "enum": ["ACCOUNT", "DEVICE", "MERCHANT", "AGENT", "RING"]
+    },
+    "typology": {
+      "type": "string"
+    },
+    "severity": {
+      "type": "string",
+      "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"]
+    },
+    "score": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "reasonCodes": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "amountAtRiskPaisa": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "traceId": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false
+}

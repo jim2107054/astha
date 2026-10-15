@@ -1,0 +1,56 @@
+name: astha
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: astha-postgres
+    environment:
+      POSTGRES_USER: astha
+      POSTGRES_PASSWORD: asthapassword
+      POSTGRES_DB: astha_risk
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U astha -d astha_risk"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: astha-redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  kafka:
+    image: bashj79/kafka-kraft:latest
+    container_name: astha-kafka
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_LISTENERS: PLAINTEXT://:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+
+  minio:
+    image: minio/minio:latest
+    container_name: astha-minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: astha-admin
+      MINIO_ROOT_PASSWORD: asthapassword
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+
+volumes:
+  pgdata:
