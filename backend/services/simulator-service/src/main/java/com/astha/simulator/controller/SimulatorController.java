@@ -14,15 +14,26 @@ import java.util.Map;
 public class SimulatorController {
 
     private final SimulatorService simulatorService;
+    private final com.astha.simulator.service.EvaluationRunnerService evaluationRunnerService;
 
-    public SimulatorController(SimulatorService simulatorService) {
+    public SimulatorController(SimulatorService simulatorService,
+                               com.astha.simulator.service.EvaluationRunnerService evaluationRunnerService) {
         this.simulatorService = simulatorService;
+        this.evaluationRunnerService = evaluationRunnerService;
     }
 
     @PostMapping("/reset")
     public ResponseEntity<List<SyntheticEntity>> resetWithSeed(@RequestBody Map<String, Object> req) {
         long seed = req.containsKey("seed") ? ((Number) req.get("seed")).longValue() : 42L;
         return ResponseEntity.ok(simulatorService.resetWithSeed(seed));
+    }
+
+    @PostMapping("/evaluate")
+    public ResponseEntity<com.astha.simulator.domain.EvaluationResult> evaluate(
+            @RequestBody(required = false) Map<String, Object> req) {
+        String config = req != null && req.containsKey("config") ? (String) req.get("config") : "CONFIG_C_PLUS_GROUPING";
+        long seed = req != null && req.containsKey("seed") ? ((Number) req.get("seed")).longValue() : 42L;
+        return ResponseEntity.ok(evaluationRunnerService.runEvaluation(config, seed));
     }
 
     @PostMapping("/scenarios/inject")

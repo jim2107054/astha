@@ -63,4 +63,28 @@ public class SimulatorServiceIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(2)));
     }
+
+    @Test
+    @DisplayName("EVL-1 to EVL-3 & NFR-15: Deterministic Evaluation across Configurations and 5,000 Dispute Simulation")
+    void shouldRunDeterministicEvaluationAcrossConfigurations() throws Exception {
+        // Run Evaluation with Config C and seed 42
+        mockMvc.perform(post("/v1/simulator/evaluate")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                {
+                  "config": "CONFIG_C_PLUS_GROUPING",
+                  "seed": 42
+                }
+                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.configuration").value("CONFIG_C_PLUS_GROUPING"))
+                .andExpect(jsonPath("$.seed").value(42))
+                .andExpect(jsonPath("$.overallPrecision", greaterThan(0.80)))
+                .andExpect(jsonPath("$.overallRecall", greaterThan(0.85)))
+                .andExpect(jsonPath("$.analystMinutesSaved", greaterThan(1000)))
+                .andExpect(jsonPath("$.disputeSimulation.totalDisputesSimulated").value(5000))
+                .andExpect(jsonPath("$.disputeSimulation.slaCompliancePercentage").value(96.8))
+                .andExpect(jsonPath("$.disputeSimulation.autoRefundSharePercentage").value(42.4))
+                .andExpect(jsonPath("$.typologyMetrics", hasSize(11)));
+    }
 }
