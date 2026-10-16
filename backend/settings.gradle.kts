@@ -11,5 +11,6 @@ include(
     "services:identity-service",
     "services:simulator-service",
     "services:notification-service",
-    "services:analytics-service"
+    "services:analytics-service",
+    "services:api-gateway"
 )
