@@ -5,5 +5,6 @@ include(
     "services:risk-service",
     "services:ingest-service",
     "services:provider-mock",
-    "services:graph-service"
+    "services:graph-service",
+    "services:case-service"
 )
