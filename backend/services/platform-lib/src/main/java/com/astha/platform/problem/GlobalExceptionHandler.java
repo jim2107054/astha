@@ -59,6 +59,17 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(pd);
     }
 
+    @ExceptionHandler(org.springframework.web.server.ResponseStatusException.class)
+    public ResponseEntity<ProblemDetails> handleResponseStatusException(org.springframework.web.server.ResponseStatusException ex, HttpServletRequest request) {
+        ProblemDetails pd = ProblemDetails.forStatus(
+            ex.getStatusCode().value(),
+            ex.getReason() != null ? ex.getReason() : "Request Error",
+            ex.getReason()
+        );
+        pd.setInstance(URI.create(request.getRequestURI()));
+        return ResponseEntity.status(ex.getStatusCode()).body(pd);
+    }
+
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ProblemDetails> handleIllegalArgument(IllegalArgumentException ex, HttpServletRequest request) {
         ProblemDetails pd = ProblemDetails.forStatus(
