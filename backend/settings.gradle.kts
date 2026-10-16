@@ -4,5 +4,6 @@ include(
     "services:platform-lib",
     "services:risk-service",
     "services:ingest-service",
-    "services:provider-mock"
+    "services:provider-mock",
+    "services:graph-service"
 )
