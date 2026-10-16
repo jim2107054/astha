@@ -57,4 +57,29 @@ test.describe('Analyst Console Workflows', () => {
     await page.click('button:has-text("EN")');
     await expect(page.locator('h1')).toContainText('Fraud Alerts & Triage Queue');
   });
+
+  test('Dispute Desk: SLA tracking, automated refund simulation, and refund resolution', async ({ page }) => {
+    await page.goto('/');
+
+    // 1. Navigate to Dispute Desk tab
+    await page.click('button:has-text("Dispute Desk")');
+    await expect(page.locator('h1')).toContainText('Bangladesh MFS Dispute Operations Desk');
+    await expect(page.locator('text=DSP-2026-101').first()).toBeVisible();
+
+    // 2. Verify SLA working day clock and warning badges
+    await expect(page.locator('text=WARNING_50')).toBeVisible();
+    await expect(page.locator('text=Bangladesh Bank SLA Clock')).toBeVisible();
+
+    // 3. Simulate an automated debited-but-failed refund event
+    await page.click('button:has-text("Simulate Auto-Refund Event")');
+    await expect(page.locator('text=AUTO-REFUND').first()).toBeVisible();
+
+    // 4. Resolve dispute DSP-2026-101 with Full Refund
+    await page.locator('tr:has-text("DSP-2026-101") button:has-text("Inspect")').click();
+    await page.click('button:has-text("Authorize Full Refund")');
+    await expect(page.locator('text=Confirm Dispute Resolution: Full Refund')).toBeVisible();
+    await page.fill('textarea[placeholder*="regulatory"]', 'Confirmed ATM dispenser error from hardware log.');
+    await page.click('button:has-text("Execute Refund Resolution")');
+    await expect(page.locator('text=resolved with Full Refund').first()).toBeVisible();
+  });
 });

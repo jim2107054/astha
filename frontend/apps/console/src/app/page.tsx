@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { api, RuleDto, RuleVersionDto } from '@astha/api-client';
-import { mockCases, mockApprovals, mockGraphData, MockCase } from '@astha/mocks';
+import { mockCases, mockApprovals, mockGraphData, mockDisputes, MockCase, MockDispute } from '@astha/mocks';
 import { formatMoney, formatPaisaShort, formatDateDhaka, getDictionary, Locale } from '@astha/i18n';
 import {
   RiskBadge,
@@ -13,7 +13,7 @@ import {
   GraphCanvas,
 } from '@astha/ui';
 
-type ActiveTab = 'overview' | 'queue' | 'detail' | 'graph' | 'approvals' | 'rules' | 'lists';
+type ActiveTab = 'overview' | 'queue' | 'detail' | 'graph' | 'approvals' | 'rules' | 'lists' | 'disputes';
 type UserRole = 'ANALYST' | 'APPROVER' | 'RISK_MANAGER' | 'COMPLIANCE' | 'ADMIN';
 
 export default function AnalystConsolePage() {
@@ -28,9 +28,12 @@ export default function AnalystConsolePage() {
   const [selectedRuleId, setSelectedRuleId] = useState<string>('R01_PASS_THROUGH_MULE');
   const [ruleVersions, setRuleVersions] = useState<RuleVersionDto[]>([]);
   const [approvals, setApprovals] = useState(mockApprovals);
+  const [disputes, setDisputes] = useState<MockDispute[]>(mockDisputes);
+  const [selectedDispute, setSelectedDispute] = useState<MockDispute>(mockDisputes[0]);
 
   // Modals & Forms
   const [freezeModalOpen, setFreezeModalOpen] = useState(false);
+  const [disputeRefundModalOpen, setDisputeRefundModalOpen] = useState(false);
   const [labelModalOpen, setLabelModalOpen] = useState(false);
   const [selectedLabel, setSelectedLabel] = useState<'TRUE_FRAUD' | 'FALSE_POSITIVE' | 'UNCLEAR'>('TRUE_FRAUD');
   const [notification, setNotification] = useState<string | null>(null);
@@ -104,6 +107,28 @@ export default function AnalystConsolePage() {
     showToast(`Action ${approvalId} rejected.`);
   };
 
+  const handleDisputeRefundConfirm = (reason: string) => {
+    const updated = disputes.map((d) =>
+      d.id === selectedDispute.id
+        ? {
+            ...d,
+            status: 'RESOLVED_REFUNDED' as const,
+            resolutionOutcome: 'REFUND_FULL',
+            note: `${d.note} | Resolved with full refund: ${reason}`,
+          }
+        : d
+    );
+    setDisputes(updated);
+    setSelectedDispute({
+      ...selectedDispute,
+      status: 'RESOLVED_REFUNDED',
+      resolutionOutcome: 'REFUND_FULL',
+      note: `${selectedDispute.note} | Resolved with full refund: ${reason}`,
+    });
+    setDisputeRefundModalOpen(false);
+    showToast(`Dispute ${selectedDispute.id} resolved with Full Refund. Idempotent credit issued via provider-mock.`);
+  };
+
   return (
     <div className="flex flex-col min-h-screen bg-slate-950 text-slate-100">
       {/* Top Navigation Bar */}
@@ -124,6 +149,7 @@ export default function AnalystConsolePage() {
               [
                 ['queue', t.nav.cases],
                 ['detail', 'Case Detail'],
+                ['disputes', t.nav.disputes],
                 ['graph', t.nav.graph],
                 ['approvals', t.nav.approvals],
                 ['rules', t.nav.rules],
@@ -143,6 +169,11 @@ export default function AnalystConsolePage() {
                 {tabKey === 'approvals' && approvals.length > 0 && (
                   <span className="ml-1.5 px-1.5 py-0.2 rounded-full text-[10px] bg-amber-500/20 text-amber-300 font-bold">
                     {approvals.length}
+                  </span>
+                )}
+                {tabKey === 'disputes' && disputes.filter(d => d.warningLevel !== 'NORMAL').length > 0 && (
+                  <span className="ml-1.5 px-1.5 py-0.2 rounded-full text-[10px] bg-red-500/20 text-red-300 font-bold">
+                    {disputes.filter(d => d.warningLevel !== 'NORMAL').length}
                   </span>
                 )}
               </button>
@@ -643,6 +674,239 @@ export default function AnalystConsolePage() {
           </section>
         )}
 
+        {/* TAB: Dispute Desk (Phase F2) */}
+        {activeTab === 'disputes' && (
+          <section className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-xl font-bold text-white tracking-tight">Bangladesh MFS Dispute Operations Desk</h1>
+                <p className="text-xs text-slate-400">
+                  Regulatory working-day SLA tracking (Friday & Saturday off) with automated debited-but-failed refund loop.
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => {
+                    const autoRef = {
+                      id: `DSP-AUTO-${Date.now().toString().slice(-4)}`,
+                      txnId: `TXN-AUTO-${Date.now().toString().slice(-4)}`,
+                      senderAccountId: 'acc-01722334455',
+                      counterpartyId: 'MERCHANT-DHAKA-01',
+                      disputeType: 'FAILED_TXN' as const,
+                      amountPaisa: 120000,
+                      status: 'RESOLVED_REFUNDED' as const,
+                      createdAt: new Date().toISOString(),
+                      deadlineUtc: new Date().toISOString(),
+                      warningLevel: 'NORMAL' as const,
+                      filingSource: 'AUTO_REFUND' as const,
+                      resolutionOutcome: 'REFUND_FULL',
+                      note: 'Automated debited-but-failed transaction recovered and refunded.',
+                    };
+                    setDisputes([autoRef, ...disputes]);
+                    showToast(`Simulated auto-refund event triggered for ${autoRef.txnId}`);
+                  }}
+                  className="px-3 py-1.5 rounded-lg bg-teal-600/20 hover:bg-teal-600/30 text-teal-300 border border-teal-500/40 text-xs font-semibold"
+                >
+                  ⚡ Simulate Auto-Refund Event
+                </button>
+              </div>
+            </div>
+
+            {/* SLA Metric Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="p-4 rounded-xl border border-slate-800 bg-slate-900/60">
+                <span className="text-xs text-slate-400 block mb-1">Total Active Disputes</span>
+                <span className="text-2xl font-bold text-white font-mono">{disputes.length}</span>
+              </div>
+              <div className="p-4 rounded-xl border border-slate-800 bg-slate-900/60">
+                <span className="text-xs text-slate-400 block mb-1">SLA Warnings / Risk</span>
+                <span className="text-2xl font-bold text-amber-400 font-mono">
+                  {disputes.filter((d) => d.warningLevel !== 'NORMAL').length}
+                </span>
+              </div>
+              <div className="p-4 rounded-xl border border-slate-800 bg-slate-900/60">
+                <span className="text-xs text-slate-400 block mb-1">Auto-Refunded Share</span>
+                <span className="text-2xl font-bold text-emerald-400 font-mono">
+                  {Math.round((disputes.filter((d) => d.filingSource === 'AUTO_REFUND').length / Math.max(1, disputes.length)) * 100)}%
+                </span>
+              </div>
+              <div className="p-4 rounded-xl border border-slate-800 bg-slate-900/60">
+                <span className="text-xs text-slate-400 block mb-1">Total Disputed Volume</span>
+                <span className="text-2xl font-bold text-teal-400 font-mono">
+                  {formatMoney(disputes.reduce((sum, d) => sum + d.amountPaisa, 0), locale)}
+                </span>
+              </div>
+            </div>
+
+            {/* Two-Column Dispute Workspace */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Left Column: Priority SLA Queue */}
+              <div className="lg:col-span-2 border border-slate-800 rounded-xl bg-slate-900/60 overflow-hidden">
+                <div className="px-5 py-3 border-b border-slate-800 bg-slate-900 flex justify-between items-center">
+                  <h2 className="text-xs font-semibold text-slate-300 uppercase tracking-wider">
+                    SLA-Ranked Dispute Queue
+                  </h2>
+                  <span className="text-xs text-slate-500 font-mono">{disputes.length} records</span>
+                </div>
+                <div className="divide-y divide-slate-800 overflow-x-auto">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-slate-950/40 text-slate-400 uppercase text-[10px]">
+                      <tr>
+                        <th className="px-4 py-2.5">Dispute ID</th>
+                        <th className="px-4 py-2.5">Type</th>
+                        <th className="px-4 py-2.5">Amount</th>
+                        <th className="px-4 py-2.5">SLA Clock</th>
+                        <th className="px-4 py-2.5">Status</th>
+                        <th className="px-4 py-2.5 text-right">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-800">
+                      {disputes.map((d) => (
+                        <tr
+                          key={d.id}
+                          onClick={() => setSelectedDispute(d)}
+                          className={`cursor-pointer transition-colors ${
+                            selectedDispute.id === d.id ? 'bg-teal-950/30' : 'hover:bg-slate-800/40'
+                          }`}
+                        >
+                          <td className="px-4 py-3">
+                            <span className="font-semibold text-white block">{d.id}</span>
+                            <span className="text-[10px] text-slate-400 font-mono">{d.txnId}</span>
+                            {d.filingSource === 'AUTO_REFUND' && (
+                              <span className="inline-block mt-0.5 px-1.5 py-0.2 rounded text-[9px] bg-emerald-500/20 text-emerald-300 font-bold">
+                                AUTO-REFUND
+                              </span>
+                            )}
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className="font-medium text-slate-200">{d.disputeType}</span>
+                          </td>
+                          <td className="px-4 py-3 font-mono font-semibold text-teal-300">
+                            {formatMoney(d.amountPaisa, locale)}
+                          </td>
+                          <td className="px-4 py-3">
+                            <span
+                              className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                                d.warningLevel === 'BREACHED'
+                                  ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
+                                  : d.warningLevel === 'WARNING_80'
+                                  ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                                  : 'bg-emerald-500/20 text-emerald-300'
+                              }`}
+                            >
+                              {d.warningLevel}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300">
+                              {d.status}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedDispute(d);
+                              }}
+                              className="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs"
+                            >
+                              Inspect
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Right Column: Dispute Resolution Workspace */}
+              <div className="border border-slate-800 rounded-xl bg-slate-900/60 p-5 space-y-5">
+                <div className="border-b border-slate-800 pb-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-mono text-teal-400 font-bold">{selectedDispute.id}</span>
+                    <span className="text-xs px-2 py-0.5 rounded bg-slate-800 text-slate-300">
+                      {selectedDispute.status}
+                    </span>
+                  </div>
+                  <h3 className="text-base font-bold text-white mt-1">{selectedDispute.disputeType}</h3>
+                </div>
+
+                <div className="space-y-3 text-xs">
+                  <div>
+                    <span className="text-slate-400 block mb-0.5">Disputed Amount</span>
+                    <span className="text-lg font-bold text-teal-300 font-mono">
+                      {formatMoney(selectedDispute.amountPaisa, locale)}
+                    </span>
+                  </div>
+
+                  <div>
+                    <span className="text-slate-400 block mb-0.5">Customer MSISDN (PII Masked)</span>
+                    <MaskedValue
+                      value={selectedDispute.senderAccountId}
+                      label="Customer Phone"
+                      onReveal={async (reason: string) => {
+                        showToast(`PII reveal recorded in audit log: "${reason}"`);
+                        return '+8801711223344';
+                      }}
+                    />
+                  </div>
+
+                  <div>
+                    <span className="text-slate-400 block mb-0.5">Counterparty</span>
+                    <span className="font-mono text-slate-200">{selectedDispute.counterpartyId}</span>
+                  </div>
+
+                  <div className="p-3 rounded-lg border border-slate-800 bg-slate-950/60">
+                    <span className="text-slate-400 block mb-1 font-semibold text-[11px]">
+                      Bangladesh Bank SLA Clock
+                    </span>
+                    <p className="text-[11px] text-slate-300">
+                      Deadline: <span className="font-mono text-amber-300">{formatDateDhaka(selectedDispute.deadlineUtc)}</span>
+                    </p>
+                    <p className="text-[10px] text-slate-500 mt-1">
+                      Weekend calendar active: Fridays and Saturdays are non-working days under BB MFS guideline.
+                    </p>
+                  </div>
+
+                  <div>
+                    <span className="text-slate-400 block mb-0.5">Case Notes / Telemetry</span>
+                    <p className="text-slate-300 bg-slate-950 p-2.5 rounded border border-slate-800">
+                      {selectedDispute.note}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Dispute Actions */}
+                <div className="pt-3 border-t border-slate-800 space-y-2">
+                  {selectedDispute.status !== 'RESOLVED_REFUNDED' && (
+                    <button
+                      onClick={() => setDisputeRefundModalOpen(true)}
+                      className="w-full py-2 rounded-lg bg-teal-600 hover:bg-teal-500 text-white font-semibold text-xs transition-colors shadow-lg shadow-teal-900/30"
+                    >
+                      ✓ Authorize Full Refund (Idempotent)
+                    </button>
+                  )}
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      onClick={() => showToast('Evidence request sent to customer SMS & app notification')}
+                      className="py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium text-xs border border-slate-700"
+                    >
+                      Request Evidence
+                    </button>
+                    <button
+                      onClick={() => showToast('Transaction query sent to Merchant portal')}
+                      className="py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium text-xs border border-slate-700"
+                    >
+                      Send to Merchant
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
+
         {/* TAB 6: Overview KPIs */}
         {activeTab === 'overview' && (
           <section className="space-y-6">
@@ -681,6 +945,16 @@ export default function AnalystConsolePage() {
         isDestructive={true}
         onConfirm={handleFreezeConfirm}
         onCancel={() => setFreezeModalOpen(false)}
+      />
+
+      <ConfirmWithReason
+        isOpen={disputeRefundModalOpen}
+        title="Confirm Dispute Resolution: Full Refund"
+        description={`You are resolving dispute ${selectedDispute.id} with a full refund of ${formatMoney(selectedDispute.amountPaisa, locale)}. This triggers an idempotent refund credit to the sender account via provider-mock.`}
+        actionLabel="Execute Refund Resolution"
+        isDestructive={false}
+        onConfirm={handleDisputeRefundConfirm}
+        onCancel={() => setDisputeRefundModalOpen(false)}
       />
 
       <ConfirmWithReason

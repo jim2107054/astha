@@ -184,3 +184,65 @@ export const mockGraphData = {
     { source: 'acc-01788776655', target: 'dev-imei-9902', weight: 1, label: 'Secondary Dev', isHighRisk: false },
   ],
 };
+
+export interface MockDispute {
+  id: string;
+  txnId: string;
+  senderAccountId: string;
+  counterpartyId: string;
+  disputeType: 'FAILED_TXN' | 'WRONG_TRANSFER' | 'MERCHANT_DISPUTE' | 'UNAUTHORIZED' | 'QR_TAMPERING';
+  amountPaisa: number;
+  status: 'SUBMITTED' | 'UNDER_INVESTIGATION' | 'EVIDENCE_REQUESTED' | 'RESOLVED_REFUNDED' | 'RESOLVED_REJECTED';
+  createdAt: string;
+  deadlineUtc: string;
+  warningLevel: 'NORMAL' | 'WARNING_50' | 'WARNING_80' | 'BREACHED';
+  filingSource: 'CUSTOMER' | 'OFFICER' | 'AUTO_REFUND';
+  note: string;
+  resolutionOutcome?: string;
+}
+
+export const mockDisputes: MockDispute[] = [
+  {
+    id: 'DSP-2026-101',
+    txnId: 'TXN-ATM-8812',
+    senderAccountId: 'acc-01711223344',
+    counterpartyId: 'ATM-GULSHAN-01',
+    disputeType: 'FAILED_TXN',
+    amountPaisa: 1500000, // 15,000 Taka
+    status: 'UNDER_INVESTIGATION',
+    createdAt: '2026-10-14T10:00:00Z',
+    deadlineUtc: '2026-10-18T18:00:00Z', // 3 Bangladesh working days
+    warningLevel: 'WARNING_50',
+    filingSource: 'CUSTOMER',
+    note: 'Money debited but cash dispenser jammed at ATM',
+  },
+  {
+    id: 'DSP-2026-102',
+    txnId: 'TXN-P2P-9921',
+    senderAccountId: 'acc-01822334455',
+    counterpartyId: 'acc-01788776655',
+    disputeType: 'UNAUTHORIZED',
+    amountPaisa: 25000000, // 2,50,000 Taka
+    status: 'SUBMITTED',
+    createdAt: '2026-10-15T08:30:00Z',
+    deadlineUtc: '2026-11-14T18:00:00Z', // 30 working days
+    warningLevel: 'NORMAL',
+    filingSource: 'CUSTOMER',
+    note: 'Account takeover after phone stolen in Motijheel',
+  },
+  {
+    id: 'DSP-2026-103',
+    txnId: 'TXN-AUTO-5544',
+    senderAccountId: 'acc-01933445566',
+    counterpartyId: 'MERCHANT-BASHUNDHARA',
+    disputeType: 'FAILED_TXN',
+    amountPaisa: 320000, // 3,200 Taka
+    status: 'RESOLVED_REFUNDED',
+    createdAt: '2026-10-15T11:00:00Z',
+    deadlineUtc: '2026-10-15T11:05:00Z',
+    warningLevel: 'NORMAL',
+    filingSource: 'AUTO_REFUND',
+    resolutionOutcome: 'REFUND_FULL',
+    note: 'Debited-but-failed merchant QR payment automatically reversed by auto-refund worker',
+  },
+];
