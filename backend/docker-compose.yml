@@ -52,5 +52,160 @@ services:
       - "9000:9000"
       - "9001:9001"
 
+  api-gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE_NAME: api-gateway
+    container_name: astha-api-gateway
+    ports:
+      - "8090:8090"
+    environment:
+      INGEST_SERVICE_URL: http://ingest-service:8081
+      RISK_SERVICE_URL: http://risk-service:8080
+      GRAPH_SERVICE_URL: http://graph-service:8082
+      CASE_SERVICE_URL: http://case-service:8083
+      DISPUTE_SERVICE_URL: http://dispute-service:8084
+      IDENTITY_SERVICE_URL: http://identity-service:8085
+      SIMULATOR_SERVICE_URL: http://simulator-service:8086
+      NOTIFICATION_SERVICE_URL: http://notification-service:8087
+      ANALYTICS_SERVICE_URL: http://analytics-service:8088
+      PROVIDER_MOCK_URL: http://provider-mock:8089
+    depends_on:
+      - redis
+      - postgres
+
+  risk-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE_NAME: risk-service
+    container_name: astha-risk-service
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    depends_on:
+      - redis
+      - kafka
+
+  ingest-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE_NAME: ingest-service
+    container_name: astha-ingest-service
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/astha_risk
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    depends_on:
+      - postgres
+      - kafka
+
+  graph-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE_NAME: graph-service
+    container_name: astha-graph-service
+    ports:
+      - "8082:8082"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/astha_risk
+    depends_on:
+      - postgres
+
+  case-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE_NAME: case-service
+    container_name: astha-case-service
+    ports:
+      - "8083:8083"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/astha_risk
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    depends_on:
+      - postgres
+      - kafka
+
+  dispute-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE_NAME: dispute-service
+    container_name: astha-dispute-service
+    ports:
+      - "8084:8084"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/astha_risk
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    depends_on:
+      - postgres
+      - kafka
+
+  identity-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE_NAME: identity-service
+    container_name: astha-identity-service
+    ports:
+      - "8085:8085"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/astha_risk
+    depends_on:
+      - postgres
+
+  notification-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE_NAME: notification-service
+    container_name: astha-notification-service
+    ports:
+      - "8087:8087"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/astha_risk
+    depends_on:
+      - postgres
+
+  analytics-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE_NAME: analytics-service
+    container_name: astha-analytics-service
+    ports:
+      - "8088:8088"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/astha_risk
+    depends_on:
+      - postgres
+
+  provider-mock:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE_NAME: provider-mock
+    container_name: astha-provider-mock
+    ports:
+      - "8089:8089"
+
 volumes:
   pgdata:

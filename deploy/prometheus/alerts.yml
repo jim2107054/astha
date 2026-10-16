@@ -1,0 +1,38 @@
+groups:
+  - name: astha-critical-alerts
+    rules:
+      - alert: RiskEngineDecisionLatencyHigh
+        expr: histogram_quantile(0.99, rate(decision_latency_seconds_bucket[1m])) > 0.05
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Risk engine p99 decision latency exceeds 50ms SLA"
+          description: "Current p99 latency is {{ $value }}s, breaching Bangladesh Bank sub-50ms requirement."
+
+      - alert: KafkaConsumerLagHigh
+        expr: consumer_lag > 500
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Kafka consumer lag is growing"
+          description: "Risk consumer lag reached {{ $value }} events."
+
+      - alert: DisputeSlaBreachWarning
+        expr: sla_breaches_total > 0
+        for: 30s
+        labels:
+          severity: critical
+        annotations:
+          summary: "Dispute SLA breach detected"
+          description: "One or more disputes exceeded Bangladesh Bank 3-day / 30-day working calendar."
+
+      - alert: TransactionOutboxLagHigh
+        expr: outbox_lag > 100
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Transactional outbox events pending dispatch"
+          description: "Outbox table contains {{ $value }} unsent events."

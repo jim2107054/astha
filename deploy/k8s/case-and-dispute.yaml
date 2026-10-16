@@ -1,0 +1,85 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: case-service
+  namespace: astha-prod
+  labels:
+    app: case-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: case-service
+  template:
+    metadata:
+      labels:
+        app: case-service
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+      containers:
+        - name: case-service
+          image: ghcr.io/jim2107054/astha-case-service:latest
+          ports:
+            - containerPort: 8083
+          envFrom:
+            - configMapRef:
+                name: astha-global-config
+            - secretRef:
+                name: astha-secrets
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: case-service
+  namespace: astha-prod
+spec:
+  selector:
+    app: case-service
+  ports:
+    - port: 8083
+      targetPort: 8083
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dispute-service
+  namespace: astha-prod
+  labels:
+    app: dispute-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: dispute-service
+  template:
+    metadata:
+      labels:
+        app: dispute-service
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+      containers:
+        - name: dispute-service
+          image: ghcr.io/jim2107054/astha-dispute-service:latest
+          ports:
+            - containerPort: 8084
+          envFrom:
+            - configMapRef:
+                name: astha-global-config
+            - secretRef:
+                name: astha-secrets
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dispute-service
+  namespace: astha-prod
+spec:
+  selector:
+    app: dispute-service
+  ports:
+    - port: 8084
+      targetPort: 8084

@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: astha-prod
+  labels:
+    app.kubernetes.io/name: astha
+    app.kubernetes.io/part-of: astha-platform

@@ -1,0 +1,32 @@
+global:
+  scrape_interval: 5s
+  evaluation_interval: 5s
+
+rule_files:
+  - "alerts.yml"
+
+scrape_configs:
+  - job_name: "astha-gateway"
+    metrics_path: "/actuator/prometheus"
+    static_configs:
+      - targets: ["api-gateway:8090"]
+
+  - job_name: "astha-risk-service"
+    metrics_path: "/actuator/prometheus"
+    static_configs:
+      - targets: ["risk-service:8080"]
+
+  - job_name: "astha-ingest-service"
+    metrics_path: "/actuator/prometheus"
+    static_configs:
+      - targets: ["ingest-service:8081"]
+
+  - job_name: "astha-case-service"
+    metrics_path: "/actuator/prometheus"
+    static_configs:
+      - targets: ["case-service:8083"]
+
+  - job_name: "astha-dispute-service"
+    metrics_path: "/actuator/prometheus"
+    static_configs:
+      - targets: ["dispute-service:8084"]

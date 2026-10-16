@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: astha-global-config
+  namespace: astha-prod
+data:
+  KAFKA_BOOTSTRAP_SERVERS: "kafka.astha-prod.svc.cluster.local:9092"
+  REDIS_HOST: "redis.astha-prod.svc.cluster.local"
+  REDIS_PORT: "6379"
+  POSTGRES_HOST: "postgres.astha-prod.svc.cluster.local"
+  POSTGRES_PORT: "5432"
+  POSTGRES_DB: "astha_risk"
+  SPRING_PROFILES_ACTIVE: "prod"
+  MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: "health,metrics,prometheus"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: astha-secrets
+  namespace: astha-prod
+type: Opaque
+stringData:
+  POSTGRES_USER: "astha_app"
+  POSTGRES_PASSWORD: "CHANGE_ME_IN_VAULT"
+  JWT_SECRET: "9a7f8e3b2c1d0e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f"
