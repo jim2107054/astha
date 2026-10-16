@@ -8,5 +8,6 @@ include(
     "services:graph-service",
     "services:case-service",
     "services:dispute-service",
-    "services:identity-service"
+    "services:identity-service",
+    "services:simulator-service"
 )
