@@ -7,5 +7,6 @@ include(
     "services:provider-mock",
     "services:graph-service",
     "services:case-service",
-    "services:dispute-service"
+    "services:dispute-service",
+    "services:identity-service"
 )
