@@ -10,5 +10,6 @@ include(
     "services:dispute-service",
     "services:identity-service",
     "services:simulator-service",
-    "services:notification-service"
+    "services:notification-service",
+    "services:analytics-service"
 )
